@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35027.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpendataApi_LCMR", "OpendataApi_LCMR.csproj", "{CCBC883A-B8FB-4061-B46A-C16D46E499F2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CCBC883A-B8FB-4061-B46A-C16D46E499F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCBC883A-B8FB-4061-B46A-C16D46E499F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCBC883A-B8FB-4061-B46A-C16D46E499F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCBC883A-B8FB-4061-B46A-C16D46E499F2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E18CE6EF-B21D-4F57-BC01-1D00329EF0A5}
+	EndGlobalSection
+EndGlobal
