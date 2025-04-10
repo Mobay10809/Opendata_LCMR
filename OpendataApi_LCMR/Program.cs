@@ -4,6 +4,16 @@ using OpendataApi_LCMR.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 開啟 CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.WithOrigins("http://localhost:8080") //限制VUE http://localhost:8080 才能
+             .AllowAnyMethod()
+             .AllowAnyHeader();
+    });
+});
 // 檢查ConnectionString  
 var configFile = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
 // 取回ConnectionString  
@@ -22,6 +32,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.UseCors("AllowAll");
 
 // Configure the HTTP request pipeline.  
 if (app.Environment.IsDevelopment())

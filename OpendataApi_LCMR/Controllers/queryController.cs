@@ -21,7 +21,7 @@ namespace OpendataApi_LCMR.Controllers
             _opendataApiDb = opendataApiDb;
         }
         [HttpGet("query")]
-        public IActionResult GetRevenueByMonth(string? yearMonth, string? companyCode)
+        public IActionResult GetRevenueByMonth(string? dataYYYMM, string? companyCode)
         {
             var revenues = new List<Revenue>();
 
@@ -29,7 +29,7 @@ namespace OpendataApi_LCMR.Controllers
             using (var command = new SqlCommand("sp_GetRevenue", connection))
             {
                 command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@DataYYYMM", yearMonth);
+                command.Parameters.AddWithValue("@DataYYYMM", dataYYYMM);
                 command.Parameters.AddWithValue("@CompanyCode", companyCode);
 
                 connection.Open();
@@ -62,10 +62,10 @@ namespace OpendataApi_LCMR.Controllers
             return Ok(revenues);
         }
         [HttpGet("querySp")]
-        public IActionResult GetRevenueByMonthSp(string? yearMonth, string? companyCode)
+        public IActionResult GetRevenueByMonthSp(string? dataYYYMM, string? companyCode)
         {
             var revenues = _opendataApiDb.Revenues
-                .FromSqlInterpolated($"EXEC sp_GetRevenue @DataYYYMM = {yearMonth}, @CompanyCode = {companyCode}")
+                .FromSqlInterpolated($"EXEC sp_GetRevenue @DataYYYMM = {dataYYYMM}, @CompanyCode = {companyCode}")
                 .ToList();
 
             return Ok(revenues);
