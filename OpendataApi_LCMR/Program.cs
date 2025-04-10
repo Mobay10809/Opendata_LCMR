@@ -1,5 +1,6 @@
 using LCMRCommon;
 using Microsoft.EntityFrameworkCore;
+using OpendataApi_LCMR;
 using OpendataApi_LCMR.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,9 +32,19 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// µù¥UAction Filter
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<GlobalExceptionFilter>();
+});
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 var app = builder.Build();
 
 app.UseCors("AllowAll");
+
 
 // Configure the HTTP request pipeline.  
 if (app.Environment.IsDevelopment())

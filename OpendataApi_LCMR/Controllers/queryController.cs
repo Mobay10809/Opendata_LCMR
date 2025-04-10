@@ -93,8 +93,10 @@ namespace OpendataApi_LCMR.Controllers
                 {
                     if (string.IsNullOrWhiteSpace(line)) continue;
 
-                    var fields = line.Split(',');
-                    fields = fields.Select(f => f.Trim().Trim('"')).ToArray();//清理雙引號
+
+                    // 一併去除雙引號
+                    var fields = line.Split(',').Select(f => f.Trim().Trim('"')).ToArray();
+
                     using var command = new SqlCommand("sp_InsertRevenue", connection, transaction);
                     command.CommandType = CommandType.StoredProcedure;
 
@@ -118,7 +120,7 @@ namespace OpendataApi_LCMR.Controllers
 
                 return Ok("資料匯入成功！");
             }
-            catch(Exception ex)
+            catch
             {
                 await transaction.RollbackAsync(); 
                 return BadRequest("資料匯入失敗");
