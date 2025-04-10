@@ -1,8 +1,8 @@
 using LCMRCommon;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OpendataApi_LCMR;
 using OpendataApi_LCMR.Services;
-using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +39,11 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<GlobalExceptionFilter>();
 });
 
+// µù¥UAutoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+// µù¥UMediatR
+builder.Services.AddMediatR(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();

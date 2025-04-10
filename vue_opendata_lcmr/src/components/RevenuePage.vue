@@ -90,7 +90,7 @@ export default {
         const params = new URLSearchParams()
         if (dataYYYMM.value) params.append('dataYYYMM', dataYYYMM.value)
         if (companyCode.value) params.append('companyCode', companyCode.value)
-        const response = await fetch(`https://localhost:7243/query/querySp?${params.toString()}`)
+        const response = await fetch(`https://localhost:7243/query/queryEF?${params.toString()}`)
         const result = await response.json()
         data.value = result
       } catch (error) {

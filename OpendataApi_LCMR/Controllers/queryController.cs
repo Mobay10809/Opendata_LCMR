@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using OpendataApi_LCMR.DTO;
 using OpendataApi_LCMR.Models;
+using OpendataApi_LCMR.Queries;
 using OpendataApi_LCMR.Services;
 using System.Data;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -15,66 +17,24 @@ namespace OpendataApi_LCMR.Controllers
     public class queryController : Controller
     {
         private readonly string _connectionString;
-        private readonly OpendataApiDbContext _opendataApiDb; 
-        private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
 
-        public queryController(IMapper mapper, OpendataApiDbContext opendataApiDb, DBService dbService) : base()
+        public queryController(IMediator mediator,  DBService dbService) : base()
         {
             _connectionString = dbService.ConnectionString;
-            _opendataApiDb = opendataApiDb;
-            _mapper = mapper;
+            _mediator = mediator;
         }
         [HttpGet("query")]
-        public IActionResult GetRevenueByMonth(string? dataYYYMM, string? companyCode)
+        public async Task<IActionResult> GetRevenue(string? dataYYYMM, string? companyCode)
         {
-            var revenues = new List<Revenue>();
-
-            using (var connection = new SqlConnection(_connectionString))
-            using (var command = new SqlCommand("sp_GetRevenue", connection))
-            {
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@DataYYYMM", dataYYYMM);
-                command.Parameters.AddWithValue("@CompanyCode", companyCode);
-
-                connection.Open();
-                using (var reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        revenues.Add(new Revenue
-                        {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            ReportDate = reader["ReportDate"]?.ToString(),
-                            DataYYYMM = reader["DataYYYMM"]?.ToString(),
-                            CompanyCode = reader["CompanyCode"]?.ToString(),
-                            CompanyName = reader["CompanyName"]?.ToString(),
-                            Industry = reader["Industry"]?.ToString(),
-                            CurrentRevenue = reader["CurrentRevenue"] != DBNull.Value ? Convert.ToInt64(reader["CurrentRevenue"]) : 0,
-                            LastMonthRevenue = reader["LastMonthRevenue"] != DBNull.Value ? Convert.ToInt64(reader["LastMonthRevenue"]) : 0,
-                            LastYearSameMonthRevenue = reader["LastYearSameMonthRevenue"] != DBNull.Value ? Convert.ToInt64(reader["LastYearSameMonthRevenue"]) : 0,
-                            MonthlyChangePercentage = reader["MonthlyChangePercentage"] != DBNull.Value ? Convert.ToInt64(reader["MonthlyChangePercentage"]) : 0,
-                            YearlyChangePercentage = reader["YearlyChangePercentage"] != DBNull.Value ? Convert.ToInt64(reader["YearlyChangePercentage"]) : 0,
-                            CumulativeCurrentRevenue = reader["CumulativeCurrentRevenue"] != DBNull.Value ? Convert.ToInt64(reader["CumulativeCurrentRevenue"]) : 0,
-                            CumulativeLastYearRevenue = reader["CumulativeLastYearRevenue"] != DBNull.Value ? Convert.ToInt64(reader["CumulativeLastYearRevenue"]) : 0,
-                            CumulativeChangePercentage = reader["CumulativeChangePercentage"] != DBNull.Value ? Convert.ToInt64(reader["CumulativeChangePercentage"]) : 0,
-                            Remark = reader["Remark"]?.ToString()
-                        });
-                    }
-                }
-            }
-            
-            var revenueDtos = _mapper.Map<List<RevenueDto>>(revenues);
-            return Ok(revenueDtos);
+            var result = await _mediator.Send(new GetRevenueQuery(dataYYYMM, companyCode));
+            return Ok(result);
         }
-        [HttpGet("querySp")]
-        public IActionResult GetRevenueByMonthSp(string? dataYYYMM, string? companyCode)
+        [HttpGet("queryEF")]
+        public async Task<IActionResult> GetRevenueEF(string? dataYYYMM, string? companyCode)
         {
-            var revenues = _opendataApiDb.Revenues
-                .FromSqlInterpolated($"EXEC sp_GetRevenue @DataYYYMM = {dataYYYMM}, @CompanyCode = {companyCode}")
-                .ToList();
-            var revenueDtos = _mapper.Map<List<RevenueDto>>(revenues);
-            return Ok(revenueDtos);
-
+            var result = await _mediator.Send(new GetRevenueQueryEF(dataYYYMM, companyCode));
+            return Ok(result);
         }
 
 
