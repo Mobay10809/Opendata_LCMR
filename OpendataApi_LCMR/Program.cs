@@ -2,6 +2,7 @@ using LCMRCommon;
 using Microsoft.EntityFrameworkCore;
 using OpendataApi_LCMR;
 using OpendataApi_LCMR.Services;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,8 @@ builder.Services.AddControllers(options =>
 {
     options.Filters.Add<GlobalExceptionFilter>();
 });
+
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();

@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using OpendataApi_LCMR.DTO;
 using OpendataApi_LCMR.Models;
 using OpendataApi_LCMR.Services;
 using System.Data;
@@ -13,12 +15,14 @@ namespace OpendataApi_LCMR.Controllers
     public class queryController : Controller
     {
         private readonly string _connectionString;
-        private readonly OpendataApiDbContext _opendataApiDb;
+        private readonly OpendataApiDbContext _opendataApiDb; 
+        private readonly IMapper _mapper;
 
-        public queryController(OpendataApiDbContext opendataApiDb, DBService dbService) : base()
+        public queryController(IMapper mapper, OpendataApiDbContext opendataApiDb, DBService dbService) : base()
         {
             _connectionString = dbService.ConnectionString;
             _opendataApiDb = opendataApiDb;
+            _mapper = mapper;
         }
         [HttpGet("query")]
         public IActionResult GetRevenueByMonth(string? dataYYYMM, string? companyCode)
@@ -58,8 +62,9 @@ namespace OpendataApi_LCMR.Controllers
                     }
                 }
             }
-
-            return Ok(revenues);
+            
+            var revenueDtos = _mapper.Map<List<RevenueDto>>(revenues);
+            return Ok(revenueDtos);
         }
         [HttpGet("querySp")]
         public IActionResult GetRevenueByMonthSp(string? dataYYYMM, string? companyCode)
@@ -67,8 +72,8 @@ namespace OpendataApi_LCMR.Controllers
             var revenues = _opendataApiDb.Revenues
                 .FromSqlInterpolated($"EXEC sp_GetRevenue @DataYYYMM = {dataYYYMM}, @CompanyCode = {companyCode}")
                 .ToList();
-
-            return Ok(revenues);
+            var revenueDtos = _mapper.Map<List<RevenueDto>>(revenues);
+            return Ok(revenueDtos);
 
         }
 
