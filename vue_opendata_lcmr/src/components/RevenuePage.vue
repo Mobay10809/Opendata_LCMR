@@ -20,7 +20,7 @@
         <label for="companyCode">公司代號:</label>
         <input id="companyCode" type="text" v-model="companyCode" />
       </div>
-      <button :disabled="isReloading" @click="fetchData" style="margin: 10px 0px;">
+      <button @click="fetchData" style="margin: 10px 0px;">
         查詢
       </button>
 
