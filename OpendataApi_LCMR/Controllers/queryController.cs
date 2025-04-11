@@ -37,6 +37,30 @@ namespace OpendataApi_LCMR.Controllers
             return Ok(result);
         }
 
+        [HttpGet("queryEF_paged")]
+        public async Task<IActionResult> GetRevenuePaged( string? dataYYYMM, string? companyCode,  int page = 1,  int pageSize = 20)
+        {
+
+            var revenues = await _mediator.Send(new GetRevenueQueryEF(dataYYYMM, companyCode));
+
+            var totalRecords = revenues.Count();
+
+            var result = revenues
+                .OrderBy(r => r.Id) 
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+
+            return Ok(new
+            {
+                Total = totalRecords,
+                Page = page,
+                PageSize = pageSize,
+                Data = result
+            });
+        }
+
 
         [HttpPost("reloadRevenueData")]
         public async Task<IActionResult> reloadRevenueData()

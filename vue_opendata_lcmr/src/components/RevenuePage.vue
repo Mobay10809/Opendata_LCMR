@@ -20,7 +20,7 @@
         <label for="companyCode">公司代號:</label>
         <input id="companyCode" type="text" v-model="companyCode" />
       </div>
-      <button @click="fetchData" style="margin: 10px 0px;">
+      <button @click="resetAndFetchData" style="margin: 10px 0px;">
         查詢
       </button>
 
@@ -69,7 +69,7 @@
 </template>
 
 <script>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 
 export default {
   setup() {
@@ -79,35 +79,62 @@ export default {
     const countdown = ref(300)
     const dataYYYMM = ref('')
     const companyCode = ref('')
-    const totalRecords = computed(() => data.value.length)
+    const totalRecords = ref(0)
+    const dataYYYMMError = ref('')
+
+    const page = ref(1)
+    const pageSize = 100
+    const isLoadingMore = ref(false)
+    const hasMoreData = ref(true)
 
     let timer = null
 
-    // 查詢資料
     const fetchData = async () => {
+      if (isLoadingMore.value || !hasMoreData.value) return
+      isLoadingMore.value = true
       loading.value = true
+
       try {
         const params = new URLSearchParams()
         if (dataYYYMM.value) params.append('dataYYYMM', dataYYYMM.value)
         if (companyCode.value) params.append('companyCode', companyCode.value)
-        const response = await fetch(`https://localhost:7243/query/queryEF?${params.toString()}`)
+        params.append('page', page.value)
+        params.append('pageSize', pageSize)
+
+        const response = await fetch(`https://localhost:7243/query/queryEF_paged?${params.toString()}`)
         const result = await response.json()
-        data.value = result
+
+        if (result.length < pageSize) {
+          hasMoreData.value = false
+        }
+
+        data.value.push(...result.data)
+        totalRecords.value = result.total
+        console.log(data.value)
+        console.log(totalRecords.value)
+        page.value += 1
       } catch (error) {
         console.error('讀取資料失敗', error)
       } finally {
         loading.value = false
+        isLoadingMore.value = false
       }
     }
 
-    // 重新匯入開放平台資料
+    const resetAndFetchData = () => {
+      page.value = 1
+      data.value = []
+      hasMoreData.value = true
+      fetchData()
+    }
+
     const handleReload = async () => {
       isReloading.value = true
       countdown.value = 300
 
       try {
         await fetch('https://localhost:7243/query/reloadRevenueData', { method: 'POST' })
-        await fetchData()
+        resetAndFetchData()
       } catch (error) {
         console.error('重新整理失敗', error)
       }
@@ -120,24 +147,34 @@ export default {
         }
       }, 1000)
     }
-    // dataYYYMM不得超過5碼
-    const dataYYYMMError = ref('')
 
     watch(dataYYYMM, (newVal) => {
-      const valStr = String(newVal) // 因是數字先轉字串
+      const valStr = String(newVal)
       if (valStr.length > 5) {
         dataYYYMM.value = valStr.slice(0, 5)
         dataYYYMMError.value = '資料年月不能超過 5 碼（YYYYM）'
+      } else {
+        dataYYYMMError.value = ''
       }
     })
 
-    // 初始化時呼叫
+    const handleScroll = () => {
+      const scrollTop = window.scrollY
+      const windowHeight = window.innerHeight
+      const fullHeight = document.documentElement.scrollHeight
+
+      if (scrollTop + windowHeight >= fullHeight - 50) {
+        fetchData()
+      }
+    }
+
     onMounted(() => {
-      fetchData()
+      window.addEventListener('scroll', handleScroll) //監聽畫面滾動
+      resetAndFetchData()
     })
 
-    // 卸載時清理定時器
     onBeforeUnmount(() => {
+      window.removeEventListener('scroll', handleScroll)
       if (timer) {
         clearInterval(timer)
       }
@@ -153,7 +190,8 @@ export default {
       companyCode,
       totalRecords,
       dataYYYMMError,
-      handleReload
+      handleReload,
+      resetAndFetchData
     }
   }
 }
