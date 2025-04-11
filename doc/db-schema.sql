@@ -165,6 +165,7 @@ BEGIN
     FROM Revenue
     WHERE (@DataYYYMM IS NULL OR DataYYYMM = @DataYYYMM)
       AND (@CompanyCode IS NULL OR CompanyCode = @CompanyCode)
+	ORDER BY DataYYYMM DESC, CompanyCode ASC
 END
 GO
 /****** Object:  StoredProcedure [dbo].[sp_InsertRevenue]    Script Date: 2025/4/10 23:58:13 ******/
