@@ -26,44 +26,51 @@
 
       <div v-show="!loading"><label>總筆數:{{ totalRecords }}</label></div>
       <div v-if="loading">資料載入中...</div>
-      <table v-else border="1" cellpadding="5" cellspacing="0" style="justify-self: center;  overflow-x: auto;">
-        <thead>
-          <tr>
-            <th>報表日期</th>
-            <th>資料年月</th>
-            <th>公司代號</th>
-            <th>公司名稱</th>
-            <th>產業類別</th>
-            <th>當月營收</th>
-            <th>上月營收</th>
-            <th>去年當月營收</th>
-            <th>月增率 (%)</th>
-            <th>年增率 (%)</th>
-            <th>累計營收</th>
-            <th>去年累計營收</th>
-            <th>累計增率 (%)</th>
-            <th>備註</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in data" :key="item.id">
-            <td>{{ item.reportDate }}</td>
-            <td>{{ item.dataYYYMM }}</td>
-            <td>{{ item.companyCode }}</td>
-            <td>{{ item.companyName }}</td>
-            <td>{{ item.industry }}</td>
-            <td>{{ item.currentRevenue }}</td>
-            <td>{{ item.lastMonthRevenue }}</td>
-            <td>{{ item.lastYearSameMonthRevenue }}</td>
-            <td>{{ item.monthlyChangePercentage }}</td>
-            <td>{{ item.yearlyChangePercentage }}</td>
-            <td>{{ item.cumulativeCurrentRevenue }}</td>
-            <td>{{ item.cumulativeLastYearRevenue }}</td>
-            <td>{{ item.cumulativeChangePercentage }}</td>
-            <td>{{ item.remark }}</td>
-          </tr>
-        </tbody>
-      </table>
+
+      <div
+        ref="scrollContainer"
+        style="max-height: 600px; overflow-y: auto; border: 1px solid #ccc; margin-top: 10px;"
+        @scroll="handleScroll"
+      >
+        <table border="1" cellpadding="5" cellspacing="0" style="width: 100%; text-align: center;">
+          <thead>
+            <tr>
+              <th>報表日期</th>
+              <th>資料年月</th>
+              <th>公司代號</th>
+              <th>公司名稱</th>
+              <th>產業類別</th>
+              <th>當月營收</th>
+              <th>上月營收</th>
+              <th>去年當月營收</th>
+              <th>月增率 (%)</th>
+              <th>年增率 (%)</th>
+              <th>累計營收</th>
+              <th>去年累計營收</th>
+              <th>累計增率 (%)</th>
+              <th>備註</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in data" :key="item.id">
+              <td>{{ item.reportDate }}</td>
+              <td>{{ item.dataYYYMM }}</td>
+              <td>{{ item.companyCode }}</td>
+              <td>{{ item.companyName }}</td>
+              <td>{{ item.industry }}</td>
+              <td>{{ item.currentRevenue }}</td>
+              <td>{{ item.lastMonthRevenue }}</td>
+              <td>{{ item.lastYearSameMonthRevenue }}</td>
+              <td>{{ item.monthlyChangePercentage }}</td>
+              <td>{{ item.yearlyChangePercentage }}</td>
+              <td>{{ item.cumulativeCurrentRevenue }}</td>
+              <td>{{ item.cumulativeLastYearRevenue }}</td>
+              <td>{{ item.cumulativeChangePercentage }}</td>
+              <td>{{ item.remark }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>
@@ -87,6 +94,8 @@ export default {
     const isLoadingMore = ref(false)
     const hasMoreData = ref(true)
 
+    const scrollContainer = ref(null)
+
     let timer = null
 
     const fetchData = async () => {
@@ -104,7 +113,7 @@ export default {
         const response = await fetch(`https://localhost:7243/query/queryEF_paged?${params.toString()}`)
         const result = await response.json()
 
-        if (result.length < pageSize) {
+        if (result.data.length < pageSize) {
           hasMoreData.value = false
         }
 
@@ -129,7 +138,6 @@ export default {
     }
 
     const handleReload = async () => {
-      isReloading.value = true
       countdown.value = 300
 
       try {
@@ -143,7 +151,6 @@ export default {
         countdown.value--
         if (countdown.value <= 0) {
           clearInterval(timer)
-          isReloading.value = false
         }
       }, 1000)
     }
@@ -159,22 +166,23 @@ export default {
     })
 
     const handleScroll = () => {
-      const scrollTop = window.scrollY
-      const windowHeight = window.innerHeight
-      const fullHeight = document.documentElement.scrollHeight
+      const container = scrollContainer.value
+      if (!container) return
 
-      if (scrollTop + windowHeight >= fullHeight - 50) {
+      const scrollTop = container.scrollTop
+      const clientHeight = container.clientHeight
+      const scrollHeight = container.scrollHeight
+
+      if (scrollTop + clientHeight >= scrollHeight - 50) {
         fetchData()
       }
     }
 
     onMounted(() => {
-      window.addEventListener('scroll', handleScroll) //監聽畫面滾動
       resetAndFetchData()
     })
 
     onBeforeUnmount(() => {
-      window.removeEventListener('scroll', handleScroll)
       if (timer) {
         clearInterval(timer)
       }
@@ -191,7 +199,9 @@ export default {
       totalRecords,
       dataYYYMMError,
       handleReload,
-      resetAndFetchData
+      resetAndFetchData,
+      handleScroll,
+      scrollContainer
     }
   }
 }
